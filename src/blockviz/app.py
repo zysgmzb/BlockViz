@@ -8,6 +8,7 @@ from typing import TypeAlias
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
+from . import __version__
 from .ui.main_window import MainWindow
 from .ui.styles import apply_theme
 
@@ -22,7 +23,7 @@ class BlockVizApplication(QApplication):
         QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
         super().__init__(sys.argv)
         self.setApplicationName("BlockViz")
-        self.setApplicationVersion("0.1.0")
+        self.setApplicationVersion(__version__)
         self.setOrganizationName("BlockViz")
         self.setStyle("Fusion")
         apply_theme(self)
