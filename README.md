@@ -1,30 +1,39 @@
 # BlockViz
 
-BlockViz 是一个使用 PySide6 (Qt6) 构建的桌面级区块链数据浏览器，致力于把链上指标、区块/交易流、账户洞察等信息带到原生应用体验中。所有视图都直接消费真实的 Ethereum JSON-RPC 数据，让你能够把本地节点或第三方服务（Infura、Alchemy、自建 RPC 等）作为“数据后端”来观察网络状态。
+BlockViz 是一个基于 PySide6 / Qt6 的桌面区块链浏览器，面向任何兼容 Ethereum JSON-RPC 的节点或服务。它把常见的区块、交易、地址查询整理成更适合桌面端使用的原生 UI，同时保留对链上原始数据的直接访问能力。
 
-> BlockViz is a modern Qt-based blockchain explorer for the desktop. It focuses on fast feedback from any Ethereum-compatible RPC endpoint, pairing real-time metrics with an opinionated dark UI theme.
+> BlockViz is a desktop blockchain explorer for Ethereum-compatible RPC endpoints, built with PySide6 and focused on native UI, fast inspection, and contract analysis workflows.
+
+![BlockViz Screenshot](./assets/sc.png)
 
 ## ✨ Features
 
-- **Live dashboard**：最近区块时间线、平均出块时间、Gas 价格与累计交易量，每 20s 自动刷新。
-- **全局搜索**：Dashboard 顶部搜索栏能自动识别区块高度 / Tx Hash / Address，并一键跳转到对应视图。
-- **Blocks 视图**：展示区块元数据、Gas 利用率、完整交易列表并推断交易类型（Transfer / Call / Contract Creation）。
-- **Transactions 视图**：查看交易状态、Gas 详情、Nonce 以及原始 Input Data（带一键复制）。
-- **Address 视图**：显示余额、交易计数、EOA/合约类型，并可复制合约 Bytecode。
-- **可配置 RPC**：左侧 SideBar 内联设置 RPC，或通过 `BLOCKVIZ_RPC_URL` 环境变量预先定义默认节点。
-- **原子化 UI 组件**：Info Cards、Detail Sections、SearchBar 等组件可复用，方便后续扩展更多视图。
+- **Dashboard 总览**：展示最近区块、平均出块时间、Gas Price、近期交易量，并自动轮询刷新。
+- **全局搜索入口**：支持从 Dashboard 直接输入区块高度、交易哈希或地址，并跳转到对应页面。
+- **Blocks 页面**：查看区块基础信息、头部哈希、Gas 使用情况，以及该区块内的交易列表。
+- **Transactions 页面**：查看交易状态、费用、执行信息、签名字段 `v / r / s`，并保留原始 `Input Data` 复制能力。
+- **Address 页面**：展示余额、Nonce / Tx Count、EOA / Contract 类型，并可查看合约字节码。
+- **Heimdall 反编译**：若本机已安装 `heimdall-rs`，可直接对合约字节码执行反编译，并查看 `Bytecode`、`Source (Heimdall)`、`Source (AI)`、`ABI`。
+- **AI 分析**：支持配置 OpenAI-compatible API，对 Heimdall 产出的源码进行可读性增强，且保留 Heimdall 原始结果。
+- **后台任务处理**：RPC 连接、Dashboard 刷新、交易 / 区块 / 地址查询、模型拉取、反编译、AI 分析等耗时任务已转移到后台，尽量避免卡 UI。
 
 ## 🚀 Getting Started
 
-### 1. 直接下载（推荐）
-如果你只是想使用 BlockViz，建议直接前往 [GitHub Releases](https://github.com/zysgmzb/BlockViz/releases) 下载对应平台的单文件可执行程序。
+### 1. 直接下载可执行文件
+如果你只是想使用 BlockViz，最简单的方式是前往 [GitHub Releases](https://github.com/zysgmzb/BlockViz/releases) 下载对应平台的单文件程序：
 
-- **Windows**：下载 `BlockViz-windows-x64.exe` 后双击运行
-- **macOS**：下载 `BlockViz-macos` 后，如有需要先执行 `chmod +x BlockViz-macos`
-- **Linux**：下载 `BlockViz-linux-x64` 后，如有需要先执行 `chmod +x BlockViz-linux-x64`
+- **Windows**：`BlockViz-windows-x64.exe`
+- **macOS**：`BlockViz-macos`
+- **Linux**：`BlockViz-linux-x64`
 
-### 2. 从源码运行（开发者）
-如果你想参与开发，或希望直接从源码启动：
+其中 macOS / Linux 下载后如无执行权限，可先执行：
+
+```bash
+chmod +x BlockViz-macos
+chmod +x BlockViz-linux-x64
+```
+
+### 2. 从源码运行
 
 ```bash
 git clone https://github.com/zysgmzb/BlockViz.git
@@ -32,100 +41,142 @@ cd BlockViz
 python -m venv .venv
 source .venv/bin/activate          # Windows PowerShell: .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -e .                   # 或 pip install -e "[dev]" 以同时安装 ruff / pytest
+pip install -e .
 python -m blockviz
 ```
 
-安装为命令行入口后，也可以直接运行：
+安装为命令入口后，也可以直接运行：
 
 ```bash
 blockviz
 ```
 
 ### 3. 首次启动
-第一次启动会提示输入 RPC URL。你可以在侧栏填入任意兼容 Ethereum JSON-RPC 的 Endpoint，并点击 **Apply RPC**。
+首次启动后，在左侧栏输入可用的 Ethereum JSON-RPC Endpoint，并点击 **Apply RPC**。
 
 常见示例：
 - 本地节点：`http://127.0.0.1:8545`
 - Infura：`https://mainnet.infura.io/v3/<key>`
 - Alchemy：`https://eth-mainnet.g.alchemy.com/v2/<key>`
 
-连接成功后，Dashboard、Blocks、Transactions 和 Address 视图都会自动使用当前 RPC 数据源。
+连接成功后，Dashboard、Blocks、Transactions、Address 页面都会切换到当前 RPC 数据源。
 
-## ⚙️ RPC 配置
+## 🤖 Contract Analysis
 
+### Heimdall 反编译
+Address 页面中，当目标地址是合约地址时：
+
+1. 先展示链上原始字节码；
+2. 点击 **Decompile**；
+3. 若本机存在 `heimdall-rs`，将生成以下结果：
+   - `Bytecode`
+   - `Source (Heimdall)`
+   - `Source (AI)`（初始为空占位）
+   - `ABI`
+
+如果系统里没有 `heimdall-rs`，应用会直接提示，不会继续执行。
+
+### AI Analysis
+在完成 Heimdall 反编译后，可以配置 AI 设置并点击 **AI Analysis**：
+
+- 支持 OpenAI-compatible API
+- 支持 `API URL`、`API Key`、模型选择
+- 支持可选代理 `Proxy`
+- `Fetch Models` / `Test Connection` 已使用后台任务执行
+
+## ⚙️ RPC & AI Config
+
+### RPC 配置
 | 方式 | 说明 |
 | --- | --- |
-| 侧栏输入 | 在应用内部输入完整 URL（例如 `https://mainnet.infura.io/v3/<key>`）；连接成功后会广播给所有视图。 |
-| 环境变量 | `export BLOCKVIZ_RPC_URL=https://...`，当应用启动时自动生效，可作为默认值。 |
-| 本地节点 | 例如 `http://127.0.0.1:8545`（geth、erigon、anvil 等）；默认值就是本地端口。 |
+| 侧栏输入 | 直接在应用左侧输入 RPC URL，并点击 `Apply RPC` |
+| 环境变量 | 启动前设置 `BLOCKVIZ_RPC_URL=https://...` |
+| 本地节点 | 默认值为 `http://127.0.0.1:8545`，适合本地开发节点 |
 
-连接失败会在状态栏提示错误信息（HTTP/JSON-RPC code），UI 会保持空状态以避免展示过期数据。
+### AI 配置
+AI 配置会持久化到用户本地配置文件中，当前包含：
+
+- `ai_api_url`
+- `ai_api_key`
+- `ai_model`
+- `ai_proxy`
+- `ai_proxy_enabled`
 
 ## 🗂️ Project Layout
 
-```
+```text
 BlockViz/
-├── pyproject.toml          # 项目信息 & entry point
-└── src/blockviz
-    ├── __main__.py         # `python -m blockviz` 入口
-    ├── app.py              # QApplication 启动、主题和窗口管理
-    ├── core/config.py      # RPC 配置 & 环境变量解析
-    ├── services/rpc_client.py
-    │   └── Ethereum JSON-RPC 封装（blocks / tx / account helpers）
-    └── ui/
-        ├── main_window.py  # 主窗口 + Sidebar + 状态同步
-        ├── dashboard.py    # Dashboard 视图，实时刷新
-        ├── blocks.py       # Blocks 详情视图
-        ├── transactions.py # Transactions 详情视图
-        ├── address.py      # Address 详情视图
-        └── widgets/        # InfoCard、SearchBar、Sidebar 等基础组件
+├── .github/workflows/release.yml   # GitHub Actions 构建 / 发布
+├── BlockViz.spec                   # PyInstaller 打包配置
+├── pyproject.toml                  # 项目元信息与依赖
+├── scripts/package_entry.py        # 打包入口辅助脚本
+├── src/blockviz/
+│   ├── __init__.py
+│   ├── __main__.py                 # python -m blockviz 入口
+│   ├── app.py                      # QApplication 启动
+│   ├── core/
+│   │   └── config.py               # 本地配置持久化（RPC / AI）
+│   ├── services/
+│   │   ├── rpc_client.py           # Ethereum JSON-RPC 封装
+│   │   ├── decompiler.py           # Heimdall 反编译封装
+│   │   ├── ai_client.py            # OpenAI-compatible API 封装
+│   │   └── mock_data.py            # 预留 / 测试数据
+│   └── ui/
+│       ├── main_window.py          # 主窗口与视图切换
+│       ├── dashboard.py            # Dashboard 页面
+│       ├── transactions.py         # Transactions 页面
+│       ├── blocks.py               # Blocks 页面
+│       ├── address.py              # Address 页面 + 反编译 / AI 分析
+│       ├── ai_settings_dialog.py   # AI 设置对话框
+│       ├── async_tasks.py          # 后台任务工具
+│       ├── styles.py               # 全局样式与主题常量
+│       └── widgets/
+│           ├── sidebar.py          # 左侧栏
+│           ├── search_bar.py       # 搜索栏组件
+│           ├── info_card.py        # 指标卡片
+│           ├── detail_section.py   # 详情区组件
+│           └── icons.py            # SVG 图标
+└── README.md
 ```
 
 ## 🧱 Architecture Notes
-- **PySide6 + Qt Fusion 主题**：自定义 `QPalette` + QSS（见 `ui/styles.py`）打造统一深色主题，并启用 HiDPI 支持。
-- **RPC 层**：`services.rpc_client.RpcClient` 聚合常用的 `eth_*` 调用（最新区块、交易详情、账户余额等），对网络错误提供统一 `RpcError`。
-- **视图间通信**：Dashboard 的搜索跳转通过回调触发 Blocks / Transactions / Address 视图的公开方法，实现“全局搜索 → 明细视图”流。
-- **配置状态**：`core.config.AppConfig` 负责保存/同步当前 RPC URL，可扩展为持久化或集中状态管理。
+
+- **UI 层**：PySide6 + QSS，自定义深色风格，主窗口由 Sidebar + 多页面 Stack 组成。
+- **服务层**：`rpc_client.py` 统一封装链上查询；`decompiler.py` 调 Heimdall；`ai_client.py` 调用兼容 OpenAI 的接口。
+- **后台任务层**：`ui/async_tasks.py` 将阻塞式 RPC / AI / 反编译工作迁移到线程池，避免冻结 UI。
+- **配置层**：`core/config.py` 将 RPC 与 AI 设置写入本地配置文件，重启后继续生效。
 
 ## 🧪 Development
 
+安装开发依赖：
+
 ```bash
 pip install -e ".[dev]"
-ruff check src                     # 代码规范
-pytest                             # （若添加单元测试）
 ```
 
-开发体验建议：
-- 将 `BLOCKVIZ_RPC_URL` 指向测试网或本地节点，避免在主网调试时被限速。
-- Qt Designer / Qt Creator 可用于快速迭代 UI，再在 `ui/` 内实现逻辑。
-- 若要打包桌面应用，可尝试 PyInstaller、cx_Freeze 或 Briefcase。
+如项目中已安装对应工具，可执行：
 
-### Releases
+```bash
+ruff check src
+python3 -m compileall src
+```
 
-项目会通过 GitHub Releases 分发单文件可执行程序。
+## 🗺️ Roadmap
 
-如果你是使用者，直接前往仓库的 Releases 页面下载对应平台版本即可。
-
-
-## 🗺️ Roadmap / Ideas
-- 批量 RPC 请求与缓存，降低刷新延迟。
-- 节点/验证者视图：质押信息、提案人统计、Gas 费用曲线等。
-- 地址画像：交易历史时间线、标签系统、合约 ABI 解析。
-- 搜索联想与历史记录，减少重复输入。
-- 多网络预设与网络状态提示（主网/测试网/私链）。
-
-## ✅ TODO
-- 连接钱包功能，完成钱包授权流程与签名操作的 UI/交互。
-- 提供合约反编译功能，并结合 AI 分析返回的字节码 / ABI，辅助理解合约行为。
-- 合约实时交互：在 UI 中发起读写调用、展示结果并跟踪状态变化。
+- 更完善的交易 / 地址历史追踪与缓存策略
+- 合约函数签名解析与 ABI 辅助展示
+- 更丰富的链上统计视图
+- 更细粒度的后台任务状态与进度展示
 
 ## 🤝 Contributing
-Issues、Feature Requests、UI Mock、PR 都欢迎。提 PR 前请运行 `ruff` 与（如有）`pytest`，并在描述里说明：
-1. 做了什么；
-2. 为什么这样做；
+
+欢迎提交 Issue / PR。建议在提交前说明：
+
+1. 修改了什么；
+2. 为什么这样改；
 3. 如何验证；
-4. 有无其他 TODO。
+4. 是否还有后续计划。
 
 ## 📄 License
-本项目以 MIT License 授权发布，详情参见根目录的 `LICENSE` 文件。
+
+本项目以 MIT License 发布，详见 `LICENSE`。

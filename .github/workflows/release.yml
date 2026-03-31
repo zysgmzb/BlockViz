@@ -45,6 +45,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0
 
+      - name: Generate app icon assets
+        run: python scripts/generate_app_icon.py
+
+      - name: Build macOS .icns asset
+        if: runner.os == 'macOS'
+        run: |
+          rm -rf assets/blockviz.iconset assets/blockviz.icns
+          mkdir -p assets/blockviz.iconset
+          sips -z 16 16 assets/blockviz.png --out assets/blockviz.iconset/icon_16x16.png
+          sips -z 32 32 assets/blockviz.png --out assets/blockviz.iconset/icon_16x16@2x.png
+          sips -z 32 32 assets/blockviz.png --out assets/blockviz.iconset/icon_32x32.png
+          sips -z 64 64 assets/blockviz.png --out assets/blockviz.iconset/icon_32x32@2x.png
+          sips -z 128 128 assets/blockviz.png --out assets/blockviz.iconset/icon_128x128.png
+          sips -z 256 256 assets/blockviz.png --out assets/blockviz.iconset/icon_128x128@2x.png
+          sips -z 256 256 assets/blockviz.png --out assets/blockviz.iconset/icon_256x256.png
+          sips -z 512 512 assets/blockviz.png --out assets/blockviz.iconset/icon_256x256@2x.png
+          sips -z 512 512 assets/blockviz.png --out assets/blockviz.iconset/icon_512x512.png
+          cp assets/blockviz.png assets/blockviz.iconset/icon_512x512@2x.png
+          iconutil -c icns assets/blockviz.iconset -o assets/blockviz.icns
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip

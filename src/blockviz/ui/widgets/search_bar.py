@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QComboBox, QHBoxLayout, QLineEdit, QPushButton, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QLineEdit, QPushButton, QWidget
+
+from ..styles import accent_button_stylesheet
 
 
 class SearchBar(QWidget):
@@ -20,24 +22,21 @@ class SearchBar(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(12)
 
-        """self.scope_combo = QComboBox()
-        self.scope_combo.addItem("Transaction", "transaction")
-        self.scope_combo.addItem("Block", "block")
-        self.scope_combo.addItem("Address", "address")
-        layout.addWidget(self.scope_combo, 1)"""
-
         self.input_field = QLineEdit()
         self.input_field.setPlaceholderText(placeholder)
         layout.addWidget(self.input_field, 4)
 
-        self.submit_button = QPushButton("Search")
+        self.submit_button = QPushButton("⌕ Search")
         self.submit_button.setCursor(Qt.PointingHandCursor)
         self.submit_button.clicked.connect(self._emit_search)
         layout.addWidget(self.submit_button)
+        self.refresh_theme()
+
+    def refresh_theme(self) -> None:
+        self.submit_button.setStyleSheet(accent_button_stylesheet())
 
     def _emit_search(self) -> None:
         query = self.input_field.text().strip()
         if not query:
             return
-        #scope = self.scope_combo.currentData(Qt.UserRole)
         self.search_requested.emit(query)
