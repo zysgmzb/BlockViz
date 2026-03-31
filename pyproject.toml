@@ -1,6 +1,6 @@
 [project]
 name = "blockviz"
-version = "0.1.0"
+version = "1.0.0"
 description = "BlockViz – a modern Qt-based blockchain data explorer and visualization tool."
 requires-python = ">=3.10"
 authors = [{ name = "BlockViz Contributors" }]
